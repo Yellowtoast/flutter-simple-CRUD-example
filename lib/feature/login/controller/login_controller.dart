@@ -16,7 +16,7 @@ import 'package:tech_test/routes/app_routes.dart';
 /// - 로그인을 요청하는 함수
 /// - 로그아웃을 요청하는 함수
 abstract class LoginController extends GetxController {
-  final emailController = TextEditingController();
+  final emailTextController = TextEditingController();
 
   final passwordController = TextEditingController();
 
@@ -61,7 +61,7 @@ class LoginControllerImpl extends GetxController
   final LocalRepository _localRepository;
 
   @override
-  final emailController = TextEditingController();
+  final emailTextController = TextEditingController();
 
   @override
   final passwordController = TextEditingController();
@@ -80,7 +80,7 @@ class LoginControllerImpl extends GetxController
 
   @override
   onClose() {
-    emailController.dispose();
+    emailTextController.dispose();
     passwordController.dispose();
     super.onClose();
   }
@@ -101,7 +101,7 @@ class LoginControllerImpl extends GetxController
 
   @override
   onEmailClear() {
-    emailController.clear();
+    emailTextController.clear();
     onEmailChanged('');
   }
 
@@ -118,20 +118,22 @@ class LoginControllerImpl extends GetxController
 
     loginEither.fold(
       (failure) => showSnackbar(message: failure.message),
-      (user) async {
-        // 로그인에 성공하면, 유저 및 토큰 정보를 로컬에 저장합니다
-        final succeed = await _updateUserInfoLocal(
-          authResult: user.auth,
-          email: user.email,
-        );
-
-        if (succeed) {
-          Get.offAllNamed(Routes.home);
-        } else {
-          showSnackbar(message: '유저 정보를 로컬에 저장하지 못했습니다.');
-        }
-      },
+      (user) => _handleLoginResult(user: user),
     );
+  }
+
+  _handleLoginResult({required User user}) async {
+    // 로그인에 성공하면, 유저 및 토큰 정보를 로컬에 저장합니다
+    final succeed = await _updateUserInfoLocal(
+      authResult: user.auth,
+      email: user.email,
+    );
+
+    if (succeed) {
+      Get.offAllNamed(Routes.home);
+    } else {
+      showSnackbar(message: '유저 정보를 로컬에 저장하지 못했습니다.');
+    }
   }
 
   @override
